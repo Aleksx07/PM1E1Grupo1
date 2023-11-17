@@ -1,7 +1,10 @@
 package com.example.PM1E1Grupo1;
 
 public class APIConexion {
-    private static final String BASE_ENDPOINT = "http://192.168.0.64/contactos/";
+
+    //Clase que proporciona la conexión a la API para realizar operaciones CRUD en la base de datos de contactos
+    // URL base de la API
+    private static final String BASE_ENDPOINT = "http://192.168.0.66/contactos/";
 
     public static String extraerEndpoint() {
         return BASE_ENDPOINT;

@@ -32,13 +32,6 @@ public class Contactos {
         this.imagen = imagen;
     }
 
-    public Contactos(String nombre, String pais, String numero, String nota, String imagen) {
-        this.nombre = nombre;
-        this.numero = numero;
-        this.latitud = latitud;
-        this.longitud = longitud;
-        this.imagen = imagen;
-    }
 
     public int getId() {
         return id;

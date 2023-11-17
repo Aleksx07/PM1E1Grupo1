@@ -29,8 +29,10 @@ public class ActivityView extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_view);
 
+        // Obtener referencias a los elementos de la interfaz de usuario
         picture = (ImageView) findViewById(R.id.imageView);
 
+        // Obtener datos del intent que inició esta actividad
         Intent intent = getIntent();
         int id = intent.getIntExtra("id", -1);
         String nombreContacto = intent.getStringExtra("nombre");
@@ -38,11 +40,15 @@ public class ActivityView extends AppCompatActivity {
         String latitud = intent.getStringExtra("latitud");
         String longitud = intent.getStringExtra("longitud");
         String imagen = intent.getStringExtra("imagen");
+
+        // Establecer el título de la barra de acción con el nombre del contacto
         getSupportActionBar().setTitle("Contacto: " + nombreContacto);
 
+        // Decodificar la imagen de la ruta del archivo y mostrarla en el ImageView
         Bitmap b = BitmapFactory.decodeFile(imagen);
         picture.setImageBitmap(b);
 
+        // Obtener referencias a los elementos de la interfaz de usuario
         verFoto = (Button) findViewById(R.id.btn_foto);
         contactos = (Button) findViewById(R.id.btn_contacto);
         editar = (Button) findViewById(R.id.btn_editar);
@@ -54,11 +60,13 @@ public class ActivityView extends AppCompatActivity {
         lat = (EditText) findViewById(R.id.txtLatitud);
         lon = (EditText) findViewById(R.id.txtLongitud);
 
+        // Establecer los textos en los EditText con los datos del contacto
         nombre.setText(nombreContacto);
         telefono.setText(numero);
         lat.setText(latitud);
         lon.setText(longitud);
 
+        // Configurar un OnClickListener para el botón de "Ver Contactos"
         contactos.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -67,21 +75,27 @@ public class ActivityView extends AppCompatActivity {
             }
         });
 
-
+        // Configurar un OnClickListener para el botón de "Editar"
         editar.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                // Crear un intent para iniciar la actividad de edición
                 Intent intent = new Intent(getApplicationContext(), ActivityEditar.class);
+
+                // Pasar los datos del contacto actual a la actividad de edición
                 intent.putExtra("id", id);
                 intent.putExtra("nombre", nombreContacto);
                 intent.putExtra("numero", numero);
                 intent.putExtra("latitud", latitud);
                 intent.putExtra("longitud", longitud);
                 intent.putExtra("imagen", imagen);
+
+                // Iniciar la actividad de edición
                 startActivity(intent);
             }
         });
 
+        // Configurar un OnClickListener para el botón de "Ver Foto"
         verFoto.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -96,33 +110,39 @@ public class ActivityView extends AppCompatActivity {
             }
         });
 
-
+        // Configurar un OnClickListener para el botón "Mapa"
         mapa.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                // Crear un intent para iniciar la actividad de ubicación en el mapa
                 Intent intent = new Intent(getApplicationContext(), Ubicacion.class);
+                // Pasar los datos necesarios para la ubicación al intent
                 intent.putExtra("nombre", nombreContacto);
                 intent.putExtra("latitud", latitud);
                 intent.putExtra("longitud", longitud);
-                startActivity(intent);
+                startActivity(intent);  // Iniciar la actividad de ubicación en el mapa
             }
         });
 
+        // Configurar un OnClickListener para el botón "Eliminar"
         eliminar.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                eliminarContacto(id);
+                eliminarContacto(id); // Llamar al método para eliminar el contacto
             }
         });
     }
 
+    //Método para eliminar un contacto mediante una solicitud HTTP DELETE a la API.
     public void eliminarContacto(int idContacto) {
+        // Construir la URL para la solicitud DELETE a la API
         String url = APIConexion.extraerEndpoint() + "DeleteContacto.php?id=" + idContacto;
-
+        // Crear una solicitud StringRequest con método DELETE
         StringRequest stringRequest = new StringRequest(Request.Method.DELETE, url,
                 new Response.Listener<String>() {
                     @Override
                     public void onResponse(String response) {
+                        // Al recibir una respuesta exitosa, iniciar la actividad de la lista de contactos
                         Intent intent = new Intent(getApplicationContext(), ActivityListView.class);
                         startActivity(intent);
                     }
@@ -130,10 +150,11 @@ public class ActivityView extends AppCompatActivity {
                 new Response.ErrorListener() {
                     @Override
                     public void onErrorResponse(VolleyError error) {
-                        error.printStackTrace();
+                        error.printStackTrace();  // Manejar errores en la respuesta
                     }
                 });
 
+        // Obtener la cola de solicitudes Volley y agregar la solicitud
         RequestQueue queue = Volley.newRequestQueue(this);
         queue.add(stringRequest);
     }

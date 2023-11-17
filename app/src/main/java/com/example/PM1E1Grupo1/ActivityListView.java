@@ -33,43 +33,26 @@ public class ActivityListView extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_list_view);
 
+        // Obtener la lista de contactos desde la API
         ArrayList<Contactos> contactos = obtenerContactosFromAPI();
-
-
+        // Crear un adaptador personalizado para la lista de contactos
         CustomBaseAdapter adapter = new CustomBaseAdapter(this, contactos);
 
-
+        // Asignar el adaptador a la vista de lista
         contactosListView = findViewById(R.id.customListView);
         contactosListView.setAdapter(adapter);
 
+        // Configurar el botón de regreso a la actividad principal
         agregar = findViewById(R.id.btnAtras);
         agregar.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                // Crear un intent para regresar a la actividad principal
                 Intent intent = new Intent(getApplicationContext(), MainActivity.class);
                 startActivity(intent);
             }
         });
     }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
     //Metodo buscar Contacto desde la API
@@ -85,24 +68,32 @@ public class ActivityListView extends AppCompatActivity {
                     @Override
                     public void onResponse(JSONObject response) {
                         try {
+                            // Obtener el arreglo de datos del objeto JSON de respuesta
                             JSONArray jsonArray = response.getJSONArray("datos");
 
+                            // Iterar sobre cada objeto JSON en el arreglo
                             for (int i = 0; i < jsonArray.length(); i++) {
                                 JSONObject jsonObject = jsonArray.getJSONObject(i);
 
+                                // Extraer los atributos del objeto JSON
                                 int id = jsonObject.getInt("id");
                                 String nombre = jsonObject.getString("nombre");
                                 String telefono = jsonObject.getString("telefono");
                                 String latitud = jsonObject.getString("latitud");
                                 String longitud = jsonObject.getString("longitud");
                                 String imagen = jsonObject.getString("imagen");
+
+                                // Crear un objeto Contactos con los atributos extraídos
                                 Contactos contacto = new Contactos(id, nombre, telefono, latitud, longitud, imagen);
+                                // Agregar el contacto a la lista
                                 contactos.add(contacto);
                             }
 
+                            // Crear un adaptador personalizado para la lista de contactos
                             CustomBaseAdapter adapter = new CustomBaseAdapter(ActivityListView.this, contactos);
+                            // Asignar el adaptador a la vista de lista
                             contactosListView.setAdapter(adapter);
-                            buscar = (EditText) findViewById(R.id.txtBuscar);
+                            buscar = (EditText) findViewById(R.id.txtBuscar); // Limpiar el campo de búsqueda
 
 
 
@@ -118,12 +109,10 @@ public class ActivityListView extends AppCompatActivity {
                     }
                 });
 
+        // Agregar la solicitud al objeto de la cola de solicitudes
         queue.add(jsonObjectRequest);
         return contactos;
     }
-
-
-
 
 
     // Método para obtener la lista de contactos desde la API
@@ -138,23 +127,29 @@ public class ActivityListView extends AppCompatActivity {
                     @Override
                     public void onResponse(JSONObject response) {
                         try {
+                            // Obtener el arreglo de datos del objeto JSON de respuesta
                             JSONArray jsonArray = response.getJSONArray("datos");
 
+                            // Iterar sobre cada objeto JSON en el arreglo
                             for (int i = 0; i < jsonArray.length(); i++) {
                                 JSONObject jsonObject = jsonArray.getJSONObject(i);
 
+                                // Extraer los atributos del objeto JSON
                                 int id = jsonObject.getInt("id");
                                 String nombre = jsonObject.getString("nombre");
                                 String telefono = jsonObject.getString("telefono");
                                 String latitud = jsonObject.getString("latitud");
                                 String longitud = jsonObject.getString("longitud");
                                 String imagen = jsonObject.getString("imagen");
+
+                                // Crear un objeto Contactos con los atributos extraídos
                                 Contactos contacto = new Contactos(id, nombre, telefono, latitud, longitud, imagen);
-                                contactos.add(contacto);
+                                contactos.add(contacto); // Agregar el contacto a la lista
                             }
 
+                            // Crear un adaptador personalizado para la lista de contactos
                             CustomBaseAdapter adapter = new CustomBaseAdapter(ActivityListView.this, contactos);
-                            contactosListView.setAdapter(adapter);
+                            contactosListView.setAdapter(adapter); // Asignar el adaptador a la vista de lista
 
                         } catch (JSONException e) {
                             e.printStackTrace();
@@ -168,6 +163,7 @@ public class ActivityListView extends AppCompatActivity {
                     }
                 });
 
+        // Agregar la solicitud al objeto de la cola de solicitudes
         queue.add(jsonObjectRequest);
         return contactos;
     }

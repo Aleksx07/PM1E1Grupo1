@@ -15,13 +15,14 @@ import java.util.List;
 
 public class CustomBaseAdapter extends BaseAdapter {
 
+
+    //Adaptador personalizado para la lista de contactos.
+
     Context context;
     LayoutInflater inflater;
     private List<Contactos> contactos;
 
-
-
-
+    //Constructor del adaptador personalizado.
     public  CustomBaseAdapter(Context context, ArrayList<Contactos> contactos)
     {
         this.context = context;
@@ -47,11 +48,10 @@ public class CustomBaseAdapter extends BaseAdapter {
         return position;
     }
 
-
-
     @Override
     public View getView(int position, View convertView, ViewGroup parent) {
         if (convertView == null) {
+            // Inflar el diseño de la fila si es nulo
             convertView = LayoutInflater.from(context).inflate(R.layout.activity_custom_list_view, parent, false);
         }
 
@@ -66,7 +66,6 @@ public class CustomBaseAdapter extends BaseAdapter {
         convertView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                // Pasar la información del producto seleccionado a la actividad de BiblioActivity
                 Intent intent = new Intent(context, ActivityView.class);
                 intent.putExtra("id", contacto.getId());
                 intent.putExtra("nombre",contacto.getNombre());
