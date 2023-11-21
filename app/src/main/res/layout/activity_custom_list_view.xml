@@ -8,15 +8,16 @@
 
     <ImageView
         android:id="@+id/imageIcom"
-        android:layout_width="100dp"
-        android:layout_height="100dp" />
+        android:layout_width="92dp"
+        android:layout_height="91dp" />
 
     <TextView
         android:id="@+id/txtnombre"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:layout_width="318dp"
+        android:layout_height="91dp"
+        android:fontFamily="sans-serif-medium"
         android:gravity="center"
         android:text="My Text"
-        android:textSize="30sp" />
+        android:textSize="20sp" />
 
 </LinearLayout>

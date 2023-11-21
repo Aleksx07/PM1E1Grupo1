@@ -22,6 +22,8 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
 import android.provider.MediaStore;
+import android.text.InputFilter;
+import android.text.Spanned;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -44,17 +46,19 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
+import java.util.regex.Pattern;
 
 public class MainActivity extends AppCompatActivity implements LocationListener {
     ImageView picture;
     Bitmap image;
     EditText txtLatitud, txtLongitud, nombre, telefono;
     Button tomarfoto, guardar, contactos;
-    String currentPhotoPath;
+    String currentPhotoPath = "";
     Boolean actualizacionActiva;
     ImageView foto;
     static final int REQUEST_IMAGE = 101;
     static final int PETICION_ACCESS_CAM = 201;
+    int ingresaFoto = 0;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -99,28 +103,43 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
                 String lat = txtLatitud.getText().toString();
                 String longi = txtLongitud.getText().toString();
 
-                // Verifica si algún campo está vacío
-                if(nombreContacto.isEmpty() || numero.isEmpty() || lat.isEmpty() || longi.isEmpty()){
-                    // Muestra un mensaje de advertencia si algún campo está vacío
-                    Toast.makeText(MainActivity.this, "INGRESE TODOS LOS CAMPOS",Toast.LENGTH_SHORT).show();
+                if(validarGPS()==true){
+                    Toast.makeText(MainActivity.this, "GPS no esta activado",Toast.LENGTH_SHORT).show();
+                }else{
+                    // Verifica si algún campo está vacío
+                    if(nombreContacto.isEmpty() || numero.isEmpty() || lat.isEmpty() || longi.isEmpty()){
+                        // Muestra un mensaje de advertencia si algún campo está vacío
+                        Toast.makeText(MainActivity.this, "INGRESE TODOS LOS CAMPOS",Toast.LENGTH_SHORT).show();
+                    }
+                    else{
+                        // Llama al método para crear un nuevo contacto con los datos proporcionados
+                        crearContacto(nombreContacto, numero, lat, longi, currentPhotoPath);
+                    }
                 }
-                else{
-                    // Llama al método para crear un nuevo contacto con los datos proporcionados
-                    crearContacto(nombreContacto, numero, lat, longi, currentPhotoPath);
-                }
+
             }
         });
         // Llama al método para obtener la ubicación del dispositivo
         getLocation();
+
+        //Validar el ingreso de solo letras en el nombre
+        expresiones_regulares();
 }
     // Método para obtener la ubicación del dispositivo
     @SuppressLint("MissingPermission")
     public void retrieveLocation() {
         // Obtiene el servicio de ubicación del sistema
         LocationManager manager = (LocationManager) getApplicationContext().getSystemService(LOCATION_SERVICE);
-        // Solicita actualizaciones de ubicación utilizando el proveedor de red
-        manager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 10000, 10, this);
-        //manager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 5000, 5, this);
+
+        // Verifica si el GPS está habilitado
+        boolean isGpsEnabled = manager.isProviderEnabled(LocationManager.GPS_PROVIDER);
+
+        if (!isGpsEnabled) {
+            Toast.makeText(getApplicationContext(), "GPS NO ESTA ACTIVADO", Toast.LENGTH_LONG).show();
+        } else {
+            // GPS está activado, procede con la solicitud de actualizaciones de ubicación
+            manager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 10000, 10, this);
+        }
     }
 
     // Método para verificar y solicitar permisos de ubicación
@@ -291,47 +310,51 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
     }
 
     public void crearContacto(String nombre, String telefono, String latitud, String longitud, String path) {
-        // Crea una cola de solicitudes Volley
-        RequestQueue queue = Volley.newRequestQueue(getApplicationContext());
-        // Construye la URL completa para la creación del contacto
-        String url = APIConexion.extraerEndpoint() + "CreateContacto.php";
-        // Crea un objeto JSON con los datos del nuevo contacto
-        JSONObject data = new JSONObject();
-        try {
-            data.put("nombre", nombre);
-            data.put("telefono", telefono);
-            data.put("latitud", latitud);
-            data.put("longitud", longitud);
-            data.put("imagen", currentPhotoPath);
-        } catch (JSONException e) {
-            e.printStackTrace();
-        }
-        // Crea una solicitud JsonObjectRequest para enviar los datos al servidor
-        JsonObjectRequest request = new JsonObjectRequest(Request.Method.POST, url, data,
-                new Response.Listener<JSONObject>() {
-                    @Override
-                    public void onResponse(JSONObject response) {
-                        try {
-                            // Obtiene el mensaje de respuesta del servidor
-                            String message = response.getString("message");
-                            // Muestra un mensaje Toast con la respuesta.
-                            Toast.makeText(MainActivity.this, message, Toast.LENGTH_LONG).show();
-                            limpiar(); // Limpia los campos después de crear el contacto
-                        } catch (JSONException e) {
-                            e.printStackTrace();
+        if(currentPhotoPath.equals("")){
+            Toast.makeText(this, "INGRESE SU FOTOGRAFÍA",Toast.LENGTH_SHORT).show();
+        }else{
+            // Crea una cola de solicitudes Volley
+            RequestQueue queue = Volley.newRequestQueue(getApplicationContext());
+            // Construye la URL completa para la creación del contacto
+            String url = APIConexion.extraerEndpoint() + "CreateContacto.php";
+            // Crea un objeto JSON con los datos del nuevo contacto
+            JSONObject data = new JSONObject();
+            try {
+                data.put("nombre", nombre);
+                data.put("telefono", telefono);
+                data.put("latitud", latitud);
+                data.put("longitud", longitud);
+                data.put("imagen", currentPhotoPath);
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+            // Crea una solicitud JsonObjectRequest para enviar los datos al servidor
+            JsonObjectRequest request = new JsonObjectRequest(Request.Method.POST, url, data,
+                    new Response.Listener<JSONObject>() {
+                        @Override
+                        public void onResponse(JSONObject response) {
+                            try {
+                                // Obtiene el mensaje de respuesta del servidor
+                                String message = response.getString("message");
+                                // Muestra un mensaje Toast con la respuesta.
+                                Toast.makeText(MainActivity.this, message, Toast.LENGTH_LONG).show();
+                                limpiar(); // Limpia los campos después de crear el contacto
+                            } catch (JSONException e) {
+                                e.printStackTrace();
+                            }
+                        }
+                    },
+                    new Response.ErrorListener() {
+                        @Override
+                        public void onErrorResponse(VolleyError error) {
+                            System.out.println(error.getMessage()); // Imprime el mensaje de error en la consola de desarrollo
+                            // Muestra un mensaje Toast informando sobre el error al crear el contacto
+                            Toast.makeText(MainActivity.this, "Error al crear el contacto" + error.getMessage(), Toast.LENGTH_LONG).show();
                         }
                     }
-                },
-                new Response.ErrorListener() {
-                    @Override
-                    public void onErrorResponse(VolleyError error) {
-                        System.out.println(error.getMessage()); // Imprime el mensaje de error en la consola de desarrollo
-                        // Muestra un mensaje Toast informando sobre el error al crear el contacto
-                        Toast.makeText(MainActivity.this, "Error al crear el contacto" + error.getMessage(), Toast.LENGTH_LONG).show();
-                    }
-                }
-        );
-        queue.add(request); // Agrega la solicitud a la cola para su procesamiento
+            );
+            queue.add(request); // Agrega la solicitud a la cola para su procesamiento
+        }
     }
 
     //Limpia los campos de nombre y teléfono, y restablece la imagen predeterminada.
@@ -342,5 +365,32 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
 
         // Restablece la imagen a la predeterminada (hols en este caso)
         picture.setImageResource(R.drawable.hols);
+    }
+
+    public boolean validarGPS(){
+        boolean validar=false;
+        if(txtLatitud.getText().toString().isEmpty() && txtLongitud.getText().toString().isEmpty()){
+            validar = true;
+        }
+        return validar;
+    }
+
+    /*Metodo para poder validar expresiones regulares*/
+    public void expresiones_regulares(){
+        InputFilter soloLetras = new InputFilter() {
+            @Override
+            public CharSequence filter(CharSequence source, int start, int end, Spanned dest, int dstart, int dend) {
+                StringBuilder builder = new StringBuilder();
+                for (int i = start; i < end; i++) {
+                    if (Pattern.matches("[a-zA-Z\\s]", String.valueOf(source.charAt(i)))) {
+                        builder.append(source.charAt(i));
+                    }
+                    // Los caracteres que no cumplen con la condición simplemente no se añaden al constructor
+                }
+                // Si todos los caracteres son válidos, devolver null no cambia la entrada
+                return source.length() == builder.length() ? null : builder.toString();
+            }
+        };
+        nombre.setFilters(new InputFilter[]{soloLetras});
     }
 }

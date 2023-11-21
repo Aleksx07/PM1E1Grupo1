@@ -7,6 +7,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
 import android.widget.BaseAdapter;
 import android.widget.Filter;
 import android.widget.Filterable;
@@ -21,6 +22,8 @@ public class CustomBaseAdapter extends BaseAdapter{
     Context context;
     LayoutInflater inflater;
     private List<Contactos> contactos; // Lista para elementos filtrados
+
+    AdapterView.OnItemClickListener itemClickListener;
 
     // Constructor del adaptador personalizado
     public CustomBaseAdapter(Context context, ArrayList<Contactos> contactos) {
@@ -63,13 +66,21 @@ public class CustomBaseAdapter extends BaseAdapter{
         convertView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-
+                // Pasar la información del producto seleccionado a la actividad de BiblioActivity
+                Intent intent = new Intent(context, ActivityView.class);
+                intent.putExtra("id", contacto.getId());
+                intent.putExtra("nombre",contacto.getNombre());
+                intent.putExtra("numero",contacto.getNumero());
+                intent.putExtra("latitud",contacto.getLatitud());
+                intent.putExtra("longitud",contacto.getLongitud());
+                intent.putExtra("imagen", contacto.getImagen());
+                context.startActivity(intent);
             }
         });
 
         return convertView;
     }
-    // Método para actualizar el conjunto de datos
+    /* Método para actualizar el conjunto de datos
     public void updateDataSet(List<Contactos> newContactos) {
         contactos.clear();
         contactos.addAll(newContactos);

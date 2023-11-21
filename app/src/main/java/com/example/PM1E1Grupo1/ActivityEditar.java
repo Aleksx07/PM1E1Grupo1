@@ -22,6 +22,8 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
 import android.provider.MediaStore;
+import android.text.InputFilter;
+import android.text.Spanned;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -45,6 +47,7 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
+import java.util.regex.Pattern;
 
 public class ActivityEditar extends AppCompatActivity implements LocationListener {
     ImageView picture;
@@ -141,15 +144,26 @@ public class ActivityEditar extends AppCompatActivity implements LocationListene
         });
         // Inicia la obtención de la ubicación del dispositivo.
         getLocation();
+
+        //Validar el ingreso de solo letras en el nombre
+        expresiones_regulares();
     }
 
     // Método para solicitar la ubicación del dispositivo.
     @SuppressLint("MissingPermission")
     public void retrieveLocation() {
-        // Obtiene el servicio de ubicación.
+        // Obtiene el servicio de ubicación del sistema
         LocationManager manager = (LocationManager) getApplicationContext().getSystemService(LOCATION_SERVICE);
-        // Solicita actualizaciones de ubicación mediante el proveedor GPS.
-        manager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 5000, 5, this);
+
+        // Verifica si el GPS está habilitado
+        boolean isGpsEnabled = manager.isProviderEnabled(LocationManager.GPS_PROVIDER);
+
+        if (!isGpsEnabled) {
+            Toast.makeText(getApplicationContext(), "GPS NO ESTA ACTIVADO", Toast.LENGTH_LONG).show();
+        } else {
+            // GPS está activado, procede con la solicitud de actualizaciones de ubicación
+            manager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 10000, 10, this);
+        }
     }
 
     // Método para obtener la ubicación del dispositivo.
@@ -364,5 +378,24 @@ public class ActivityEditar extends AppCompatActivity implements LocationListene
         nombre.setText(Transacciones.Empty);
         telefono.setText(Transacciones.Empty);
         picture.setImageResource(R.drawable.hols);
+    }
+
+    /*Metodo para poder validar expresiones regulares*/
+    public void expresiones_regulares(){
+        InputFilter soloLetras = new InputFilter() {
+            @Override
+            public CharSequence filter(CharSequence source, int start, int end, Spanned dest, int dstart, int dend) {
+                StringBuilder builder = new StringBuilder();
+                for (int i = start; i < end; i++) {
+                    if (Pattern.matches("[a-zA-Z\\s]", String.valueOf(source.charAt(i)))) {
+                        builder.append(source.charAt(i));
+                    }
+                    // Los caracteres que no cumplen con la condición simplemente no se añaden al constructor
+                }
+                // Si todos los caracteres son válidos, devolver null no cambia la entrada
+                return source.length() == builder.length() ? null : builder.toString();
+            }
+        };
+        nombre.setFilters(new InputFilter[]{soloLetras});
     }
 }
